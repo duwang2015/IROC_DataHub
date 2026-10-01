@@ -1,0 +1,21 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+# node
+frontend/node_modules/
+frontend/dist/
+# built frontend copied into the backend package for serving
+backend/iroc_datahub/static/
+# local data and settings
+data/
+*.sqlite
+.env
+.DS_Store
+Thumbs.db

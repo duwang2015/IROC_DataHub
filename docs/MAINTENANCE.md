@@ -81,10 +81,15 @@ Schedule: first Monday of the month, 09:00 local. Create it from a Claude Code s
 
 ## Release steps
 
-1. `cd frontend && npm ci && npm run build` (output lands in `backend/iroc_datahub/static/`).
-2. `python -m build` to produce a wheel that contains the built frontend.
-3. Tag `vX.Y.Z`; attach the wheel to the GitHub release.
-4. On the IROC PC: `pip install iroc_datahub-X.Y.Z-py3-none-any.whl` inside the app venv.
+1. Bump `version` in `pyproject.toml` and `backend/iroc_datahub/__init__.py`.
+2. Commit, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. CI builds the Windows package on a Windows runner (`windows-exe` job: frontend build,
+   PyInstaller via `scripts/datahub.spec`, smoke test of the exe) and attaches
+   `IROC-DataHub-win64.zip` to the GitHub release automatically.
+4. Users unzip and run `IROC-DataHub.exe`; their settings and data roots are untouched.
+
+Every push to `main` also produces the zip as a CI artifact (kept 30 days) for testing.
+The container image is built from the `Dockerfile` (`docker build -t iroc-datahub .`).
 
 ## Things that are deliberately not here
 

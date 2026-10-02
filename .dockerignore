@@ -1,0 +1,11 @@
+.git
+.venv
+.lockenv
+.civenv
+build
+dist
+frontend/node_modules
+frontend/dist
+backend/iroc_datahub/static
+data
+*.sqlite

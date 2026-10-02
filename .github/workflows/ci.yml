@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
 
 jobs:
@@ -38,3 +39,54 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
+
+  windows-exe:
+    # Packaged build for PCs without Python/Node: dist/IROC-DataHub/IROC-DataHub.exe
+    needs: [backend, frontend]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Install app with imaging extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+          pip install (Get-Item vendor/iroc_qa-*.whl).FullName --no-deps
+          pip install -e . --no-deps
+          pip install "SimpleITK>=2.2" "nibabel>=4.0" "scipy>=1.7" "scikit-image>=0.19" "matplotlib>=3.5" "rt-utils" pyinstaller==6.22.3
+      - name: Package
+        run: pyinstaller --noconfirm --log-level WARN scripts/datahub.spec
+      - name: Smoke test the exe
+        shell: pwsh
+        run: |
+          $env:IROC_DATAHUB_SETTINGS = "$env:TEMP\dh-settings.json"
+          $p = Start-Process -FilePath dist\IROC-DataHub\IROC-DataHub.exe -ArgumentList "--no-browser","--port","8799" -PassThru
+          Start-Sleep -Seconds 8
+          $h = Invoke-RestMethod http://127.0.0.1:8799/api/health
+          Stop-Process -Id $p.Id -Force
+          if (-not $h.version) { throw "exe did not answer" }
+          "exe ok, version $($h.version)"
+      - name: Zip
+        run: Compress-Archive -Path dist\IROC-DataHub\* -DestinationPath IROC-DataHub-win64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IROC-DataHub-win64
+          path: IROC-DataHub-win64.zip
+          retention-days: 30
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: IROC-DataHub-win64.zip

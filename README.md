@@ -10,7 +10,21 @@ cohorts and run processing modules, all from one page served on your own PC.
 - How it is built: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Upgrade policy and the monthly routine: [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md)
 
-## Install (Windows, one time)
+## Install without Python or Node (Windows)
+
+Download `IROC-DataHub-win64.zip` from the latest [release](https://github.com/duwang2015/IROC_DataHub/releases)
+(or the `IROC-DataHub-win64` artifact of any CI run), unzip anywhere, double-click
+`IROC-DataHub.exe`. It opens http://127.0.0.1:8765 and asks for a data root on first start.
+`IROC-DataHub.exe --host 0.0.0.0` lets other PCs on the LAN use it in their browsers.
+
+## Run as a container (Linux server or NAS)
+
+```
+docker build -t iroc-datahub .
+docker run -d --name datahub -p 8765:8765 -v /srv/iroc_data:/data -v /srv/datahub-config:/config iroc-datahub
+```
+
+## Install from source (Windows, one time)
 
 ```
 powershell -ExecutionPolicy Bypass -File scripts\setup_windows.ps1 -RepoDir E:\IROC_DataHub -DataRoot E:\iroc_data

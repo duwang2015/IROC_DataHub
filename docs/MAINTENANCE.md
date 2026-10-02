@@ -51,8 +51,10 @@ dependencies changed, and run the tests of both repositories. Delete the old whe
 python -m venv .lockenv && .lockenv/bin/pip install -e ".[dev]"
 .lockenv/bin/pip freeze --exclude-editable | grep -v "^iroc-qa " > requirements.lock
 ```
-(`iroc-qa` itself comes from `vendor/`, not from the lock.) Commit the result together with
-the `pyproject.toml` change that caused it.
+(`iroc-qa` itself comes from `vendor/`, not from the lock.) Then re-add the platform marker
+that `pip freeze` drops: the `uvloop` line must read `uvloop==X.Y.Z; sys_platform != "win32"`
+(uvloop has no Windows build; without the marker every Windows install fails). Commit the
+result together with the `pyproject.toml` change that caused it.
 
 ## Monthly maintenance routine (Claude)
 

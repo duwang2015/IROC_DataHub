@@ -60,23 +60,34 @@ jobs:
           npm ci
           npm run build
       - name: Install app with imaging extras
+        shell: bash
         run: |
+          set -euo pipefail
           python -m pip install --upgrade pip
           pip install -r requirements.lock
-          pip install (Get-Item vendor/iroc_qa-*.whl).FullName --no-deps
+          pip install vendor/iroc_qa-*.whl --no-deps
           pip install -e . --no-deps
-          pip install "SimpleITK>=2.2" "nibabel>=4.0" "scipy>=1.7" "scikit-image>=0.19" "matplotlib>=3.5" "rt-utils" pyinstaller==6.22.3
+          pip install "SimpleITK>=2.2" "nibabel>=4.0" "scipy>=1.7" "scikit-image>=0.19" "matplotlib>=3.5" rt-utils pyinstaller==6.22.3
+          python -c "import yaml, pydicom, iroc_qa.store, iroc_datahub.main, SimpleITK; print('imports ok')"
       - name: Package
+        shell: bash
         run: pyinstaller --noconfirm --log-level WARN scripts/datahub.spec
       - name: Smoke test the exe
         shell: pwsh
         run: |
           $env:IROC_DATAHUB_SETTINGS = "$env:TEMP\dh-settings.json"
-          $p = Start-Process -FilePath dist\IROC-DataHub\IROC-DataHub.exe -ArgumentList "--no-browser","--port","8799" -PassThru
-          Start-Sleep -Seconds 8
-          $h = Invoke-RestMethod http://127.0.0.1:8799/api/health
+          $p = Start-Process -FilePath dist\IROC-DataHub\IROC-DataHub.exe -ArgumentList "--no-browser","--port","8799" -PassThru -RedirectStandardOutput exe-out.log -RedirectStandardError exe-err.log
+          Start-Sleep -Seconds 10
+          try {
+            $h = Invoke-RestMethod http://127.0.0.1:8799/api/health
+          } catch {
+            Write-Host "---- exe stdout ----"; Get-Content exe-out.log -ErrorAction SilentlyContinue
+            Write-Host "---- exe stderr ----"; Get-Content exe-err.log -ErrorAction SilentlyContinue
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+            throw "exe did not answer: $_"
+          }
           Stop-Process -Id $p.Id -Force
-          if (-not $h.version) { throw "exe did not answer" }
+          if (-not $h.version) { throw "exe answered without a version" }
           "exe ok, version $($h.version)"
       - name: Zip
         run: Compress-Archive -Path dist\IROC-DataHub\* -DestinationPath IROC-DataHub-win64.zip

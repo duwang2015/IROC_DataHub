@@ -27,7 +27,7 @@ Opens http://127.0.0.1:8765. Add `--host 0.0.0.0` to let other PCs on the LAN us
 ## Develop
 
 ```
-pip install -r requirements.lock && pip install -e . --no-deps
+pip install -r requirements.lock && pip install vendor/iroc_qa-*.whl --no-deps && pip install -e . --no-deps
 iroc-datahub serve --reload --no-browser          # backend on :8765
 cd frontend && npm ci && npm run dev              # UI on :5173, proxies /api
 ```

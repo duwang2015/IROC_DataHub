@@ -11,7 +11,6 @@ httptools==0.8.0
 httpx==0.28.1
 idna==3.20
 iniconfig==2.3.0
-iroc-qa @ git+https://github.com/duwang2015/IROC_QA.git@af26a306c0f9b1bb507f6de80336c7aeda6d574a
 numpy==2.4.6
 openpyxl==3.1.5
 opentelemetry-api==1.45.0

@@ -19,3 +19,4 @@ data/
 .env
 .DS_Store
 Thumbs.db
+.civenv/

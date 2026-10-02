@@ -38,7 +38,7 @@ directly; it always goes through `iroc_qa.store`.
 
 ```
 python -m venv .venv && .venv\Scripts\activate            (Windows)   |  source .venv/bin/activate
-pip install -e ".[dev]"                                    # pulls iroc-qa from GitHub (pinned)
+pip install -r requirements.lock && pip install vendor/iroc_qa-*.whl --no-deps && pip install -e . --no-deps
 cd frontend && npm ci && npm run build && cd ..            # builds into backend/iroc_datahub/static
 iroc-datahub serve                                         # http://localhost:8765
 ```
@@ -60,8 +60,11 @@ CI runs exactly these. A PR that does not pass CI is not merged.
 - **Do not upgrade dependencies on your own initiative.** If it runs, it stays. Upgrades happen
   only when a human asks for them, in their own PR, with the reason in the PR description.
   The monthly maintenance routine reports advisories; it does not apply them.
-- The `iroc-qa` dependency is pinned to a commit in `pyproject.toml` / `requirements.lock`.
-  Bumping it is a deliberate change: run the full test suite of both repositories.
+- The `iroc-qa` dependency (the data store) ships as a wheel in `vendor/`, built from the
+  commit recorded in `vendor/iroc_qa.commit` (IROC_QA is a private repository, so CI and
+  fresh PCs cannot pip-install it from GitHub). Bumping it is a deliberate change: rebuild the
+  wheel (`docs/MAINTENANCE.md`), update the commit file and the hash in `pyproject.toml`, run
+  the test suites of both repositories.
 
 ## Conventions
 

@@ -22,7 +22,7 @@ Branch protection to enable once on GitHub: require the `backend` and `frontend`
 |---|---|---|
 | Python version | `.python-version` | pyenv / python.org installer |
 | Python packages | `requirements.lock` | `pip install -r requirements.lock` |
-| `iroc-qa` (the store) | commit hash in `pyproject.toml` and `requirements.lock` | same |
+| `iroc-qa` (the store) | wheel in `vendor/`, commit in `vendor/iroc_qa.commit` | `pip install vendor/iroc_qa-*.whl --no-deps` |
 | Node version | `.nvmrc` | nvm / nodejs.org installer |
 | npm packages | `frontend/package-lock.json` | `npm ci` (never `npm install` in CI) |
 
@@ -35,16 +35,24 @@ Upgrades happen only when a human decides, for one of these reasons:
 An upgrade is its own PR: bump the pin, run both test suites (this repository and
 `IROC_QA`), describe why in the PR body. One upgrade per PR.
 
-To bump `iroc-qa` to a newer commit: replace the hash in `pyproject.toml`, regenerate
-`requirements.lock` (see below), run the tests.
+To bump `iroc-qa` to a newer commit (IROC_QA is private, so it is vendored as a wheel):
+
+```
+git -C ../IROC_QA checkout <commit>
+pip wheel ../IROC_QA --no-deps -w vendor/            # replaces vendor/iroc_qa-*.whl
+git -C ../IROC_QA rev-parse HEAD > vendor/iroc_qa.commit
+```
+then update the hash in `pyproject.toml`, regenerate `requirements.lock` if iroc-qa's own
+dependencies changed, and run the tests of both repositories. Delete the old wheel.
 
 ## Regenerating `requirements.lock`
 
 ```
 python -m venv .lockenv && .lockenv/bin/pip install -e ".[dev]"
-.lockenv/bin/pip freeze --exclude-editable > requirements.lock
+.lockenv/bin/pip freeze --exclude-editable | grep -v "^iroc-qa " > requirements.lock
 ```
-Commit the result together with the `pyproject.toml` change that caused it.
+(`iroc-qa` itself comes from `vendor/`, not from the lock.) Commit the result together with
+the `pyproject.toml` change that caused it.
 
 ## Monthly maintenance routine (Claude)
 

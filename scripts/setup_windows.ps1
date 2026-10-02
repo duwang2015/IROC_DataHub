@@ -30,6 +30,8 @@ if (-not (Test-Path $py)) { Write-Host "== creating $venv"; & $Python -m venv $v
 Write-Host "== installing pinned Python dependencies"
 & $py -m pip install --upgrade pip --quiet
 & $py -m pip install -r (Join-Path $RepoDir "requirements.lock") --quiet
+$wheel = Get-ChildItem (Join-Path $RepoDir "vendor\iroc_qa-*.whl") | Select-Object -First 1
+& $py -m pip install $wheel.FullName --no-deps --quiet
 & $py -m pip install -e $RepoDir --no-deps --quiet
 
 Write-Host "== building the frontend (needs Node from .nvmrc)"

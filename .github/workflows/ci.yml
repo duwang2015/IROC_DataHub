@@ -17,6 +17,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.lock
+          pip install vendor/iroc_qa-*.whl --no-deps
           pip install -e . --no-deps
       - run: ruff check backend tests
       - run: pytest -q

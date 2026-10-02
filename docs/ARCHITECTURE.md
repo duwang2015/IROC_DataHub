@@ -30,7 +30,8 @@ browser ──HTTP──▶ FastAPI (backend/iroc_datahub)
 |---|---|
 | App | `GET /api/health`, `GET/POST/DELETE /api/workspaces`, `POST /api/workspaces/active` |
 | Browse | `GET /api/overview`, `GET /api/trials`, `GET /api/trials/{t}/cases?q&modality&missing&holding&no_module`, `GET /api/cases/{t}/{c}`, `GET /api/search?q` |
-| Inbox / holding | `GET /api/inbox`, `POST /api/ingest`, `GET /api/holding`, `GET /api/holding/{id}`, `POST /api/holding/{id}/resolve` |
+| Inbox / holding | `GET /api/inbox`, `POST /api/ingest`, `POST /api/import` (any folder, copy only), `GET /api/holding`, `GET /api/holding/{id}`, `POST /api/holding/{id}/resolve` |
+| Summaries | `GET /api/reports`, `GET /api/reports/{name}` (one Markdown + JSON summary per ingest or import run, stored in `_reports/`) |
 | Records | `GET /api/log/{t}`, `POST /api/log/{t}/note`, `POST /api/cases/{t}/{c}/current` |
 | Tools | `POST /api/export`, `POST /api/run`, `POST /api/reindex`, `POST /api/verify`, `POST /api/open-folder` |
 | Config | `GET/PUT /api/config` (validated before writing; previous file kept as `.bak`) |

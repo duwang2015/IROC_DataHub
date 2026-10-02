@@ -108,7 +108,10 @@ def overview(state: AppState = State) -> dict:
             for t in st["trials"]:
                 recent.extend(store.catalog.trial_log(t["id"], limit=10))
             recent.sort(key=lambda r: r["at"], reverse=True)
+            from iroc_qa.store.summary import list_summaries
+
             return {"root": str(store.root), "stats": st, "holding": holding, "inbox": inbox,
+                    "last_summary": (list_summaries(store.cfg.reports, 1) or [None])[0],
                     "lock": lock.read_holder() if lock.is_held_by_live_process() else None,
                     "recent_log": recent[:20],
                     "jobs": [j.as_dict() for j in state.jobs.running()],
@@ -417,6 +420,8 @@ def ingest(body: IngestIn, state: AppState = State) -> dict:
             rep = Ingester(store, dry_run=body.dry_run, forced=forced,
                            keep_source=body.keep_source).run(srcs)
             return {"summary": rep.summary(), "lock_busy": rep.lock_busy,
+                    "summary_path": str(rep.summary_path) if rep.summary_path else None,
+                    "summary_name": rep.summary_path.stem if rep.summary_path else None,
                     "drops": [{"drop": str(d.drop), "ingest_id": d.ingest_id,
                                "skipped_unsettled": d.skipped_unsettled, "batches": d.batches,
                                "held": d.held, "duplicates": d.duplicates,
@@ -424,6 +429,70 @@ def ingest(body: IngestIn, state: AppState = State) -> dict:
                               for d in rep.drops]}
 
     return state.jobs.submit("ingest" + (" (dry run)" if body.dry_run else ""), run).as_dict()
+
+
+class ImportIn(BaseModel):
+    path: str
+    dry_run: bool = False
+    trial: str = ""
+    case: str = ""
+
+
+@router.post("/import", status_code=202)
+def import_folder(body: ImportIn, state: AppState = State) -> dict:
+    """File everything found in a folder anywhere on disk; the folder is only read."""
+    forced = (body.trial, body.case) if body.trial and body.case else None
+    if (body.trial or body.case) and not forced:
+        raise _http(ValueError("trial and case must be given together"))
+    folder = Path(body.path)
+    if not folder.exists():
+        raise _http(ValueError(f"folder not found: {body.path}"))
+    root = state.require_root().resolve()
+    if root == folder.resolve() or root in folder.resolve().parents:
+        raise _http(ValueError("the folder is inside the store root; use the inbox instead"))
+
+    def run(job: Job):
+        with state.open_store() as store:
+            rep = Ingester(store, dry_run=body.dry_run, forced=forced,
+                           copy_only=True).import_folder(folder)
+            return {"summary": rep.summary(), "lock_busy": rep.lock_busy,
+                    "summary_path": str(rep.summary_path) if rep.summary_path else None,
+                    "summary_name": rep.summary_path.stem if rep.summary_path else None,
+                    "drops": [{"drop": str(d.drop), "ingest_id": d.ingest_id,
+                               "batches": d.batches, "held": d.held, "duplicates": d.duplicates,
+                               "failures": d.failures, "dry_run": d.dry_run}
+                              for d in rep.drops]}
+
+    return state.jobs.submit("import" + (" (dry run)" if body.dry_run else ""), run).as_dict()
+
+
+@router.get("/reports")
+def reports(limit: int = 30, state: AppState = State) -> list[dict]:
+    from iroc_qa.store.summary import list_summaries
+
+    try:
+        with state.open_store(read_only=True) as store:
+            return list_summaries(store.cfg.reports, limit)
+    except Exception as exc:
+        raise _http(exc) from exc
+
+
+@router.get("/reports/{name}")
+def report(name: str, state: AppState = State) -> dict:
+    try:
+        with state.open_store(read_only=True) as store:
+            if "/" in name or "\\" in name or ".." in name:
+                raise ValueError("bad report name")
+            md = store.cfg.reports / f"{name}.md"
+            js = store.cfg.reports / f"{name}.json"
+            if not md.is_file():
+                raise HTTPException(404, {"code": "not_found", "message": name})
+            return {"name": name, "path": str(md), "markdown": md.read_text(encoding="utf-8"),
+                    "data": json.loads(js.read_text(encoding="utf-8")) if js.is_file() else None}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _http(exc) from exc
 
 
 class ResolveIn(BaseModel):

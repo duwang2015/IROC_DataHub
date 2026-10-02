@@ -120,3 +120,29 @@ def test_export_and_run(client, filled, tmp_path):
     j = wait_job(client, client.post("/api/run", json={"producer": "dicom_qc", "trial": "NRG-BN011",
                                                        "case": "BN011-0007"}).json()["id"])
     assert j["status"] == "done"
+
+
+def test_import_folder_and_reports(client, store_root, tmp_path):
+    from .conftest import make_ct, write_series
+
+    src = tmp_path / "archive"
+    write_series(make_ct("BN011-0007", 2), src / "2024" / "BN011-0007" / "CT")
+    write_series(make_ct("BN011-0031", 1), src / "BN011-0021")
+    before = sorted(str(p) for p in src.rglob("*") if p.is_file())
+    bad = client.post("/api/import", json={"path": str(store_root / "_inbox")})
+    assert bad.status_code == 400
+    j = wait_job(client, client.post("/api/import", json={"path": str(src), "dry_run": True}
+                                     ).json()["id"])
+    assert j["status"] == "done" and j["result"]["summary_name"].startswith("import-dry-")
+    j = wait_job(client, client.post("/api/import", json={"path": str(src)}).json()["id"])
+    assert j["status"] == "done", j["error"]
+    assert len(j["result"]["drops"][0]["batches"]) == 1
+    assert len(j["result"]["drops"][0]["held"]) == 1
+    assert sorted(str(p) for p in src.rglob("*") if p.is_file()) == before
+    reps = client.get("/api/reports").json()
+    assert reps[0]["mode"] == "import" and not reps[0]["dry_run"] and reps[1]["dry_run"]
+    r = client.get(f"/api/reports/{reps[0]['name']}").json()
+    assert r["markdown"].startswith("# Folder import summary")
+    assert r["data"]["totals"]["batches"] == 1
+    assert client.get("/api/reports/../x").status_code in (400, 404)
+    assert client.get("/api/overview").json()["last_summary"]["name"] == reps[0]["name"]

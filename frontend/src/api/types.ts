@@ -15,7 +15,8 @@ export interface InboxEntry { name: string; path: string; is_dir: boolean; n_fil
 export interface HoldingRow { ingest_id: string; group_no: number; reason: string; created_at: string; resolved_at?: string | null }
 export interface Overview {
   root: string; stats: Stats; holding: HoldingRow[]; inbox: InboxEntry[];
-  lock: Record<string, string> | null; recent_log: LogEntry[]; jobs: Job[]; trials_config: { id: string; name: string }[]
+  lock: Record<string, string> | null; recent_log: LogEntry[]; jobs: Job[]; trials_config: { id: string; name: string }[];
+  last_summary: ReportRow | null
 }
 export interface Trial extends Partial<TrialStats> { id: string; name: string }
 export interface CaseSummary {
@@ -39,5 +40,7 @@ export interface HoldingGroup { group_no: number; dir: string; reason: string; s
 export interface HoldingDetail { report: { ingest_id: string; source: string; groups: HoldingGroup[] }; markdown: string; path: string; trials: string[] }
 export interface Inbox { path: string; entries: InboxEntry[]; settle_seconds: number }
 export interface TrialLog { trial: string; path: string; entries: LogEntry[] }
+export interface ReportRow { name: string; mode: string; started_at: string; finished_at?: string; user: string; dry_run: boolean; path: string; totals: { drops: number; files_scanned: number; batches: number; files_filed: number; duplicates: number; held_groups: number; failures: number; cases: string[] } }
+export interface Report { name: string; path: string; markdown: string; data: unknown }
 export interface Job { id: string; kind: string; status: 'queued' | 'running' | 'done' | 'failed'; created_at: string; started_at: string | null; finished_at: string | null; progress: string[]; result: unknown; error: string | null }
 export interface Config { path: string; text: string }

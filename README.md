@@ -2,7 +2,8 @@
 
 Local web app for IROC radiotherapy QA staff: manage, organise and track clinical-trial
 imaging data stored with [`iroc_qa.store`](https://github.com/duwang2015/IROC_QA).
-Browse trials and cases, watch the inbox, file or discard holding items, add notes, export
+Browse trials and cases, watch the inbox, import whole folders (copy only, the source is never
+touched), file or discard holding items, read the summary of every run, add notes, export
 cohorts and run processing modules, all from one page served on your own PC.
 
 - Maintainers' guide: [`CLAUDE.md`](CLAUDE.md)
@@ -15,7 +16,9 @@ cohorts and run processing modules, all from one page served on your own PC.
 powershell -ExecutionPolicy Bypass -File scripts\setup_windows.ps1 -RepoDir E:\IROC_DataHub -DataRoot E:\iroc_data
 ```
 This clones the repository, creates an isolated `.venv`, installs pinned dependencies,
-builds the frontend and registers `E:\iroc_data` as the workspace.
+builds the frontend and registers `E:\iroc_data` as the workspace. For a separate test store,
+run it again with `-DataRoot E:\iroc_test` (or add one later in Settings); the app can switch
+between workspaces.
 
 ## Run
 

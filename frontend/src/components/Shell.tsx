@@ -38,6 +38,7 @@ export function Shell({ children }: { children: ReactNode }) {
         ))}
         <NavLink to="/inbox" className={cls}>Inbox {inbox > 0 && <span className="count warn">{inbox}</span>}</NavLink>
         <NavLink to="/holding" className={cls}>Holding {holding > 0 && <span className="count warn">{holding}</span>}</NavLink>
+        <NavLink to="/reports" className={cls}>Summaries</NavLink>
         <NavLink to="/log" className={cls}>Log</NavLink>
         <NavLink to="/settings" className={cls}>Settings</NavLink>
         <div className="foot">v{health?.version ?? '…'}{health && health.jobs_running > 0 ? ` · ${health.jobs_running} job(s) running` : ''}</div>

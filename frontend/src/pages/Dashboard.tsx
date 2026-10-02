@@ -24,6 +24,11 @@ export function Dashboard() {
         <Tile v={st.holding_open} k="holding groups" tone={st.holding_open ? 'warn' : undefined} />
         <Tile v={data.inbox.length} k="waiting in inbox" tone={data.inbox.length ? 'warn' : undefined} />
       </div>
+      {data.last_summary && (
+        <div className="muted" style={{ marginTop: 10 }}>
+          last run: {data.last_summary.mode}{data.last_summary.dry_run ? ' (dry run)' : ''} at {fmtTime(data.last_summary.started_at)} · {data.last_summary.totals.batches} batch(es), {data.last_summary.totals.held_groups} held · <Link to="/reports">summaries</Link>
+        </div>
+      )}
       {data.lock && <div className="err">Store locked by {data.lock.user}@{data.lock.host} since {fmtTime(data.lock.started_at)} ({data.lock.cmd})</div>}
       {data.jobs.length > 0 && <div className="job">{data.jobs.length} job(s) running: {data.jobs.map((j) => j.kind).join(', ')}</div>}
 

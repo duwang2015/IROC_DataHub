@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { HoldingPage } from './pages/Holding'
 import { InboxPage } from './pages/Inbox'
 import { LogPage } from './pages/Log'
+import { ReportsPage } from './pages/Reports'
 import { SearchPage } from './pages/Search'
 import { SettingsPage } from './pages/Settings'
 import { TrialPage } from './pages/Trial'
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/inbox" element={<InboxPage />} />
         <Route path="/log/:trial" element={<LogPage />} />
         <Route path="/log" element={<LogPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

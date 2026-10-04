@@ -13,11 +13,11 @@ dependencies = [
     "fastapi>=0.115,<1",
     "uvicorn[standard]>=0.30,<1",
     "pydantic>=2.7,<3",
-    "iroc-qa[store] @ git+https://github.com/duwang2015/IROC_QA.git@72e739d77f3155112c9f38c65c56858f94545f1b",
+    "iroc-qa[store] @ git+https://github.com/duwang2015/IROC_QA.git@c5930c340d74544f2590362acdc51e57578bee41",
 ]
 
 [project.optional-dependencies]
-imaging = ["iroc-qa[store,imaging] @ git+https://github.com/duwang2015/IROC_QA.git@72e739d77f3155112c9f38c65c56858f94545f1b"]
+imaging = ["iroc-qa[store,imaging] @ git+https://github.com/duwang2015/IROC_QA.git@c5930c340d74544f2590362acdc51e57578bee41"]
 dev = ["pytest>=8,<9", "ruff>=0.6,<1", "httpx>=0.27,<1"]
 
 [project.scripts]

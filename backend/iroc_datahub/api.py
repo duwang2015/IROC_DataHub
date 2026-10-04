@@ -11,7 +11,6 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from iroc_qa.store.config import ConfigError, config_from_dict
 from iroc_qa.store.ingest import Ingester, resolve_holding
-from iroc_qa.store.layout import CASE_PIN
 from pydantic import BaseModel, Field
 
 from . import __version__
@@ -256,6 +255,7 @@ def case_detail(trial: str, case_id: str, state: AppState = State) -> dict:
             return {"trial": case.trial, "case_id": case.case_id, "pk": case.pk,
                     "site": case.site, "kind": case.kind,
                     "path": str(case.dir), "notes_path": str(notes_dir),
+                    "card": str(case.dir / "case.json"),
                     "current": (c["current_batch_id"] or "").rsplit("/", 1)[-1],
                     "pinned": bool(c["pinned"]), "batches": batches, "runs": runs,
                     "notes": notes, "holding": holding,
@@ -566,7 +566,10 @@ def add_note(trial: str, body: NoteIn, state: AppState = State) -> dict:
         with state.open_store() as store:
             tid = store.cfg.trial(trial).id
             cid = store.case(tid, body.case).case_id if body.case else None
-            return store.log.append(tid, "note", body.message.strip(), case_id=cid)
+            rec = store.log.append(tid, "note", body.message.strip(), case_id=cid)
+            if cid:
+                store.refresh_card(store.case(tid, cid))
+            return rec
     except Exception as exc:
         raise _http(exc) from exc
 
@@ -587,14 +590,9 @@ def set_current(trial: str, case_id: str, body: CurrentIn, state: AppState = Sta
                 raise ValueError(f"unknown batch {body.batch}")
             with cat.transaction():
                 cat.set_current_batch(case.pk, b["id"], pin=body.pin)
-            pin = case.dir / CASE_PIN
-            if body.pin:
-                pin.write_text(json.dumps({"schema": "iroc-store.case/1",
-                                           "pinned_batch": body.batch}), encoding="utf-8")
-            elif pin.exists():
-                pin.unlink()
             store.log.append(case.trial, "current", f"current batch set to {body.batch}"
                              + (" (pinned)" if body.pin else ""), case_id=case.case_id)
+            store.refresh_card(case)
             store.refresh_overview()
             return {"ok": True}
     except Exception as exc:

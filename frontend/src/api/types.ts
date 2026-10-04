@@ -32,7 +32,7 @@ export interface Batch { id: string; name: string; seq: number; kind: string; in
 export interface Run { id: string; module: string; version: string; run_name: string; status: string; started_at: string; finished_at: string | null; path: string; files: { name: string; kind: string; size: number; path: string }[] }
 export interface HoldingItem { ingest_id: string; group_no: number; reason: string; created_at: string; suggested_trial: string | null; suggested_case: string | null; notes: string[]; summary: string; source: string; path: string; report: string }
 export interface CaseDetail {
-  trial: string; case_id: string; pk: string; site: string; kind: 'trial' | 'source'; path: string; notes_path: string; current: string; pinned: boolean;
+  trial: string; case_id: string; pk: string; site: string; kind: 'trial' | 'source'; path: string; card: string; notes_path: string; current: string; pinned: boolean;
   batches: Batch[]; runs: Run[]; notes: { name: string; size: number; path: string }[];
   holding: (HoldingRow & { decision: Record<string, unknown>; report: string })[]; log: LogEntry[]
 }

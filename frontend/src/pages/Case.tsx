@@ -30,6 +30,7 @@ export function CasePage() {
       <div className="row muted">{c.site} / <Link to={'/trials/' + encodeURIComponent(trial)}>{trial}</Link> <span className="chip">{c.kind}</span> /</div>
       <h1 className="mono">{caseId} <Chips mods={mods} /></h1>
       <PathLink path={c.path} />
+      <div className="muted" style={{ fontSize: 12 }}>machine-readable summary: <span className="mono">{c.card}</span> (also <span className="mono">cases.json</span> in the collection folder)</div>
       <div className="row" style={{ marginTop: 10 }}>
         <button type="button" className="btn" disabled={job.busy} onClick={() => run('dicom_qc')}>Run DICOM QC</button>
         <button type="button" className="btn" disabled={job.busy} onClick={() => run('dcm2nii')}>Run dcm2nii</button>

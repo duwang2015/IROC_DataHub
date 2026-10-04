@@ -6,7 +6,7 @@ export interface Workspace { root: string; label: string; last_opened: string; e
 export interface Workspaces { active: string | null; workspaces: Workspace[] }
 
 export interface TrialStats {
-  id: string; name: string; cases: number; batches: number; files: number; bytes: number;
+  id: string; name: string; site?: string; kind?: 'trial' | 'source'; cases: number; batches: number; files: number; bytes: number;
   cases_by_modality: Record<string, number>; cases_by_module: Record<string, number>; last_ingest: string | null
 }
 export interface Stats { trials: TrialStats[]; holding_open: number; last_ingest: Record<string, unknown> | null }
@@ -15,10 +15,12 @@ export interface InboxEntry { name: string; path: string; is_dir: boolean; n_fil
 export interface HoldingRow { ingest_id: string; group_no: number; reason: string; created_at: string; resolved_at?: string | null }
 export interface Overview {
   root: string; stats: Stats; holding: HoldingRow[]; inbox: InboxEntry[];
-  lock: Record<string, string> | null; recent_log: LogEntry[]; jobs: Job[]; trials_config: { id: string; name: string }[];
+  lock: Record<string, string> | null; recent_log: LogEntry[]; jobs: Job[];
+  trials_config: { id: string; name: string; site: string; kind: 'trial' | 'source' }[]; sites: string[];
   last_summary: ReportRow | null
 }
-export interface Trial extends Partial<TrialStats> { id: string; name: string }
+export interface Trial extends Partial<TrialStats> { id: string; name: string; site: string; kind: 'trial' | 'source' }
+export interface SiteGroup { site: string; cases: number; files: number; bytes: number; collections: { id: string; name: string; kind: 'trial' | 'source'; site: string; cases: number; batches: number; files: number; bytes: number }[] }
 export interface CaseSummary {
   trial: string; case_id: string; modalities: string[]; modules: string[]; n_batches: number;
   current: string; pinned: boolean; last_ingest: string | null; n_files: number; holding: number
@@ -30,11 +32,11 @@ export interface Batch { id: string; name: string; seq: number; kind: string; in
 export interface Run { id: string; module: string; version: string; run_name: string; status: string; started_at: string; finished_at: string | null; path: string; files: { name: string; kind: string; size: number; path: string }[] }
 export interface HoldingItem { ingest_id: string; group_no: number; reason: string; created_at: string; suggested_trial: string | null; suggested_case: string | null; notes: string[]; summary: string; source: string; path: string; report: string }
 export interface CaseDetail {
-  trial: string; case_id: string; pk: string; path: string; notes_path: string; current: string; pinned: boolean;
+  trial: string; case_id: string; pk: string; site: string; kind: 'trial' | 'source'; path: string; notes_path: string; current: string; pinned: boolean;
   batches: Batch[]; runs: Run[]; notes: { name: string; size: number; path: string }[];
   holding: (HoldingRow & { decision: Record<string, unknown>; report: string })[]; log: LogEntry[]
 }
-export interface SearchResult { cases: { trial: string; case_id: string; modalities: string[] }[]; trials: { id: string; name: string }[] }
+export interface SearchResult { cases: { trial: string; case_id: string; site: string; kind: string; modalities: string[] }[]; trials: { id: string; name: string }[] }
 export interface Evidence { category: string; source: string; trial: string | null; case: string | null; detail: string }
 export interface HoldingGroup { group_no: number; dir: string; reason: string; summary: string; present: boolean; decision: { trial: string | null; case: string | null; notes: string[]; evidence: Evidence[] }; files: string[] }
 export interface HoldingDetail { report: { ingest_id: string; source: string; groups: HoldingGroup[] }; markdown: string; path: string; trials: string[] }

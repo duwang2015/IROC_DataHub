@@ -68,10 +68,10 @@ export function SettingsPage() {
       </div>
       <JobBox job={job.job} error={job.submitError} />
 
-      <h2>Trial rules (iroc_store.yaml)</h2>
+      <h2>Collections and rules (iroc_store.yaml)</h2>
       {cfg.data && <div className="muted mono" style={{ marginBottom: 6 }}>{cfg.data.path}</div>}
       <ErrorBox error={cfg.error} />
-      <p className="muted">Each trial needs <span className="mono">case_id_patterns</span> with a <span className="mono">(?P&lt;case&gt;…)</span> group. The file is validated before it is written; the previous version is kept as <span className="mono">.bak</span>.</p>
+      <p className="muted">Data is organised as site / collection / case. <span className="mono">trials</span> need <span className="mono">site</span> and <span className="mono">case_id_patterns</span> with a <span className="mono">(?P&lt;case&gt;…)</span> group; <span className="mono">sources</span> (hospitals, public datasets) need <span className="mono">site</span> plus <span className="mono">institution_patterns</span> (matched against InstitutionName) or <span className="mono">patient_id_patterns</span>. The file is validated before it is written; the previous version is kept as <span className="mono">.bak</span>.</p>
       {cfg.data && <ConfigEditor key={cfg.data.text} initial={cfg.data.text} onSaved={() => cfg.reload()} />}
     </>
   )

@@ -40,6 +40,10 @@ h3 { font-size: 15px; margin: 14px 0 6px; }
 .rail .count.warn { background: var(--warn); color: #fff; }
 .rail form { padding: 0 2px 8px; }
 .rail input[type=search] { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); }
+.rail .site { margin-top: 6px; }
+.rail .site-h { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 6px 10px 2px; }
+.rail .site a.nav { padding-left: 18px; }
+.rail .kind { float: right; font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; margin-top: 2px; }
 .rail .foot { margin-top: auto; font-size: 12px; color: var(--muted); padding: 0 8px; }
 .content { flex: 1 1 auto; min-width: 0; padding: 22px 28px 48px; max-width: 1280px; }
 @media (max-width: 760px) {

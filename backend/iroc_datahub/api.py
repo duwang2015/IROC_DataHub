@@ -115,17 +115,42 @@ def overview(state: AppState = State) -> dict:
                     "lock": lock.read_holder() if lock.is_held_by_live_process() else None,
                     "recent_log": recent[:20],
                     "jobs": [j.as_dict() for j in state.jobs.running()],
-                    "trials_config": [{"id": t.id, "name": t.name} for t in store.cfg.trials]}
+                    "trials_config": [{"id": t.id, "name": t.name, "site": t.site,
+                                       "kind": t.kind} for t in store.cfg.trials],
+                    "sites": store.cfg.sites()}
     except Exception as exc:
         raise _http(exc) from exc
 
 
 @router.get("/trials")
 def trials(state: AppState = State) -> list[dict]:
+    """Every collection (trials and non-trial sources) with its site, kind and stats."""
     try:
         with state.open_store(read_only=True) as store:
             stats = {t["id"]: t for t in store.catalog.stats()["trials"]}
-            return [{"id": t.id, "name": t.name, **stats.get(t.id, {})} for t in store.cfg.trials]
+            return [{"id": t.id, "name": t.name, **stats.get(t.id, {}), "site": t.site,
+                     "kind": t.kind} for t in store.cfg.trials]
+    except Exception as exc:
+        raise _http(exc) from exc
+
+
+@router.get("/sites")
+def sites(state: AppState = State) -> list[dict]:
+    """Sites in display order, each with its collections (trials first, then sources)."""
+    try:
+        with state.open_store(read_only=True) as store:
+            stats = {t["id"]: t for t in store.catalog.stats()["trials"]}
+            out = []
+            for site, rules in store.cfg.by_site().items():
+                cols = [{"id": r.id, "name": r.name, "kind": r.kind, "site": site,
+                         **{k: stats.get(r.id, {}).get(k, 0) for k in ("cases", "batches",
+                                                                      "files", "bytes")}}
+                        for r in sorted(rules, key=lambda r: (r.kind != "trial", r.id))]
+                out.append({"site": site, "collections": cols,
+                            "cases": sum(c["cases"] for c in cols),
+                            "files": sum(c["files"] for c in cols),
+                            "bytes": sum(c["bytes"] for c in cols)})
+            return out
     except Exception as exc:
         raise _http(exc) from exc
 
@@ -229,6 +254,7 @@ def case_detail(trial: str, case_id: str, state: AppState = State) -> dict:
                                         report=str(store.cfg.holding / h["ingest_id"]
                                                    / "report.md")))
             return {"trial": case.trial, "case_id": case.case_id, "pk": case.pk,
+                    "site": case.site, "kind": case.kind,
                     "path": str(case.dir), "notes_path": str(notes_dir),
                     "current": (c["current_batch_id"] or "").rsplit("/", 1)[-1],
                     "pinned": bool(c["pinned"]), "batches": batches, "runs": runs,
@@ -254,7 +280,13 @@ def search(q: str, state: AppState = State) -> dict:
             for c in cat.list_cases():
                 if qq in c["case_id"].upper():
                     series = cat.series_for_case(c["id"])
+                    try:
+                        rule = store.cfg.trial(c["trial_id"])
+                        site, kind = rule.site, rule.kind
+                    except Exception:
+                        site, kind = "OTHER", "trial"
                     cases.append({"trial": c["trial_id"], "case_id": c["case_id"],
+                                  "site": site, "kind": kind,
                                   "modalities": sorted({s["modality"] for s in series})})
                 if len(cases) >= 100:
                     break

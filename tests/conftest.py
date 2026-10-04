@@ -12,17 +12,24 @@ from iroc_qa.store import Store
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import ExplicitVRLittleEndian, generate_uid
 
-CONFIG = """schema: iroc-store.config/1
+CONFIG = """schema: iroc-store.config/2
 paths: {inbox: _inbox, holding: _holding, logs: _logs}
+sites: [HN, Brain]
 trials:
   - id: NRG-BN011
     name: BN011
+    site: Brain
     protocol_ids: ["NRG-BN011"]
     case_id_patterns: ['(?i)\\b(?P<case>BN011[-_ ]?\\d{4})\\b']
   - id: NRG-HN009
     name: HN009
+    site: HN
     protocol_ids: ["NRG-HN009"]
     case_id_patterns: ['(?i)\\b(?P<case>HN009[-_ ]?\\d{3,4})\\b']
+sources:
+  - id: Penn
+    site: HN
+    institution_patterns: ['(?i)penn']
 ingest:
   settle_seconds: 0
   on_ingest: []

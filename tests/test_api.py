@@ -43,7 +43,7 @@ def test_ingest_overview_cases_detail(client, filled):
     assert sum(len(d["held"]) for d in drops) == 1
     ov = client.get("/api/overview").json()
     assert ov["stats"]["holding_open"] == 1 and ov["inbox"] == []
-    assert {t["id"] for t in ov["stats"]["trials"]} == {"NRG-BN011", "NRG-HN009"}
+    assert {t["id"] for t in ov["stats"]["trials"]} >= {"NRG-BN011", "NRG-HN009"}
     trials = client.get("/api/trials").json()
     assert next(t for t in trials if t["id"] == "NRG-BN011")["cases"] == 1
     cases = client.get("/api/trials/NRG-BN011/cases").json()
@@ -93,7 +93,7 @@ def test_current_config_reindex_verify_open(client, filled, store_root):
     assert client.post("/api/cases/NRG-BN011/BN011-0007/current",
                        json={"batch": b, "pin": True}).json()["ok"]
     assert client.get("/api/cases/NRG-BN011/BN011-0007").json()["pinned"]
-    assert (store_root / "NRG-BN011" / "BN011-0007" / "case.json").exists()
+    assert (store_root / "Brain" / "NRG-BN011" / "BN011-0007" / "case.json").exists()
     cfg = client.get("/api/config").json()
     assert "NRG-BN011" in cfg["text"]
     bad = cfg["text"].replace("(?P<case>BN011", "(BN011")
@@ -146,3 +146,24 @@ def test_import_folder_and_reports(client, store_root, tmp_path):
     assert r["data"]["totals"]["batches"] == 1
     assert client.get("/api/reports/../x").status_code in (400, 404)
     assert client.get("/api/overview").json()["last_summary"]["name"] == reps[0]["name"]
+
+
+def test_sites_and_sources(client, store_root, tmp_path):
+    from .conftest import make_ct, write_series
+
+    sites = client.get("/api/sites").json()
+    assert [s["site"] for s in sites] == ["HN", "Brain"]
+    hn = sites[0]["collections"]
+    assert [(c["id"], c["kind"]) for c in hn] == [("NRG-HN009", "trial"), ("Penn", "source")]
+    src = tmp_path / "penn"
+    ct = make_ct("MRN-42", 1)
+    for ds in ct:
+        ds.InstitutionName = "Penn Medicine"
+    write_series(ct, src / "x")
+    j = wait_job(client, client.post("/api/import", json={"path": str(src)}).json()["id"])
+    assert j["status"] == "done" and j["result"]["drops"][0]["batches"][0]["trial"] == "Penn"
+    d = client.get("/api/cases/Penn/MRN-42").json()
+    assert d["site"] == "HN" and d["kind"] == "source"
+    assert (store_root / "HN" / "Penn" / "MRN-42" / "original").is_dir()
+    s = client.get("/api/search", params={"q": "mrn"}).json()
+    assert s["cases"][0]["kind"] == "source"

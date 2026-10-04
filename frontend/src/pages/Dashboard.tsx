@@ -32,12 +32,16 @@ export function Dashboard() {
       {data.lock && <div className="err">Store locked by {data.lock.user}@{data.lock.host} since {fmtTime(data.lock.started_at)} ({data.lock.cmd})</div>}
       {data.jobs.length > 0 && <div className="job">{data.jobs.length} job(s) running: {data.jobs.map((j) => j.kind).join(', ')}</div>}
 
-      <h2>Trials</h2>
-      {st.trials.length === 0 && <Empty>No trials configured. Edit the trial rules in Settings.</Empty>}
+      {st.trials.length === 0 && <Empty>No collections configured. Edit the rules in Settings.</Empty>}
+      {data.sites.map((site) => {
+        const cols = st.trials.filter((t) => (t.site ?? 'OTHER') === site)
+        if (cols.length === 0) return null
+        return (<div key={site}>
+      <h2>{site}</h2>
       <div className="cards">
-        {st.trials.map((t) => (
+        {cols.map((t) => (
           <div className="card" key={t.id}>
-            <h3 style={{ margin: 0 }}><Link to={'/trials/' + encodeURIComponent(t.id)}>{t.id}</Link> <span className="muted">{t.name !== t.id ? t.name : ''}</span></h3>
+            <h3 style={{ margin: 0 }}><Link to={'/trials/' + encodeURIComponent(t.id)}>{t.id}</Link> <span className="chip">{t.kind ?? 'trial'}</span> <span className="muted">{t.name !== t.id ? t.name : ''}</span></h3>
             <div className="row" style={{ marginTop: 6 }}>
               <span><b className="num">{t.cases}</b> cases</span>
               <span><b className="num">{t.batches}</b> batches</span>
@@ -52,6 +56,8 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+        </div>)
+      })}
 
       {data.holding.length > 0 && (
         <>

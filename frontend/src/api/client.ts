@@ -44,6 +44,7 @@ export const api = {
   removeWorkspace: (root: string) => call<{ ok: boolean }>('DELETE', '/api/workspaces', undefined, { root }),
   overview: () => call<T.Overview>('GET', '/api/overview'),
   trials: () => call<T.Trial[]>('GET', '/api/trials'),
+  sites: () => call<T.SiteGroup[]>('GET', '/api/sites'),
   cases: (trial: string, p: { q?: string; modality?: string[]; missing?: string[]; holding?: boolean; no_module?: string }) =>
     call<T.CaseList>('GET', `/api/trials/${enc(trial)}/cases`, undefined, p),
   caseDetail: (trial: string, caseId: string) => call<T.CaseDetail>('GET', `/api/cases/${enc(trial)}/${enc(caseId)}`),

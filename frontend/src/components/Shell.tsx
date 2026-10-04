@@ -33,9 +33,20 @@ export function Shell({ children }: { children: ReactNode }) {
           <input id="global-search" type="search" placeholder="case id, trial…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="search" />
         </form>
         <NavLink to="/" end className={cls}>Dashboard</NavLink>
-        {ov?.trials_config.map((t) => (
-          <NavLink key={t.id} to={'/trials/' + encodeURIComponent(t.id)} className={cls}>{t.id}</NavLink>
-        ))}
+        {ov?.sites.map((site) => {
+          const cols = ov.trials_config.filter((t) => t.site === site)
+          if (cols.length === 0) return null
+          return (
+            <div key={site} className="site">
+              <div className="site-h">{site}</div>
+              {cols.map((t) => (
+                <NavLink key={t.id} to={'/trials/' + encodeURIComponent(t.id)} className={cls}>
+                  {t.id}{t.kind === 'source' && <span className="kind">source</span>}
+                </NavLink>
+              ))}
+            </div>
+          )
+        })}
         <NavLink to="/inbox" className={cls}>Inbox {inbox > 0 && <span className="count warn">{inbox}</span>}</NavLink>
         <NavLink to="/holding" className={cls}>Holding {holding > 0 && <span className="count warn">{holding}</span>}</NavLink>
         <NavLink to="/reports" className={cls}>Summaries</NavLink>

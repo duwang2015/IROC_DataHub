@@ -27,7 +27,7 @@ export function CasePage() {
   const mods = [...new Set(c.batches.flatMap((b) => b.series.map((s) => s.modality)))].sort()
   return (
     <>
-      <div className="row muted"><Link to={'/trials/' + encodeURIComponent(trial)}>{trial}</Link> /</div>
+      <div className="row muted">{c.site} / <Link to={'/trials/' + encodeURIComponent(trial)}>{trial}</Link> <span className="chip">{c.kind}</span> /</div>
       <h1 className="mono">{caseId} <Chips mods={mods} /></h1>
       <PathLink path={c.path} />
       <div className="row" style={{ marginTop: 10 }}>

@@ -29,7 +29,7 @@ export function TrialPage() {
 
   return (
     <>
-      <h1>{trial} <span className="muted" style={{ fontWeight: 400 }}>{t?.name && t.name !== trial ? t.name : ''}</span></h1>
+      <h1>{trial} {t && <span className="chip">{t.site} · {t.kind}</span>} <span className="muted" style={{ fontWeight: 400 }}>{t?.name && t.name !== trial ? t.name : ''}</span></h1>
       <div className="row muted" style={{ marginBottom: 10 }}>
         <Link to={'/log/' + encodeURIComponent(trial)}>trial log</Link>
       </div>
